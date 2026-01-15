@@ -14,14 +14,15 @@ export const TOOLS_ROUTES: Routes = [
       {
         path: 'json',
         loadComponent: () =>
-          import('./json/json-tool').then(m => m.JsonTool),
+          import('./json-tool/json-tool').then(m => m.JsonTool),
       },
       {
         path: 'regex',
         loadComponent: () =>
-          import('./regex/regex-tool').then(m => m.RegexTool),
+          import('./regex/regex-tools').then(m => m.RegexTools),
       },
-      {
+      // En proceso 
+      /* {
         path: 'encode',
         loadComponent: () =>
           import('./encode/encode-tool').then(m => m.EncodeTool),
@@ -60,7 +61,7 @@ export const TOOLS_ROUTES: Routes = [
         path: 'linter',
         loadComponent: () =>
           import('./linter/linter-tool').then(m => m.LinterTool),
-      },
+      }, */
     ],
   },
 ];
