@@ -1,1 +1,89 @@
-<p>home works!</p>
+<section class="page">
+  <header class="top">
+    <div class="top__title">
+      <h2>Herramientas</h2>
+      <p>Busca, filtra y abre utilidades rápidas para tu día a día frontend.</p>
+    </div>
+
+    <div class="top__controls">
+      <label class="search">
+        <span class="search__icon" aria-hidden="true">⌕</span>
+        <input
+          type="text"
+          [value]="query()"
+          (input)="onQueryInput($event)"
+          placeholder="Buscar herramienta… (json, regex, jwt, css)"
+          aria-label="Buscar herramienta"
+        />
+      </label>
+
+      <div class="toggles" role="group" aria-label="Filtros principales">
+        <button
+          type="button"
+          class="toggle"
+          [class.toggle--active]="mode() === 'all'"
+          (click)="setMode('all')"
+        >
+          Todas
+        </button>
+        <button
+          type="button"
+          class="toggle"
+          [class.toggle--active]="mode() === 'favorites'"
+          (click)="setMode('favorites')"
+        >
+          Favoritos
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="cats" aria-label="Categorías">
+    <button
+      type="button"
+      class="cat"
+      [class.cat--active]="category() === 'all'"
+      (click)="setCategory('all')"
+    >
+      Todas
+    </button>
+
+    @for (c of categories; track c) {
+    <button
+      type="button"
+      class="cat"
+      [class.cat--active]="category() === c"
+      (click)="setCategory(c)"
+    >
+      {{ c }}
+    </button>
+    }
+  </nav>
+
+  <div class="summary" aria-live="polite">
+    <span>{{ filteredTools().length }} herramienta(s)</span>
+    @if (filteredTools().length > 0) {
+    <span>· mostrando favoritos</span>
+    } @if (category() !== 'all') {
+    <span>· categoría: {{ category() }}</span>
+    } @if (query().trim()) {
+    <span>· búsqueda: "{{ query().trim() }}"</span>
+    }
+  </div>
+
+  @if (filteredTools().length > 0) {
+  <section class="grid">
+    @for (t of filteredTools(); track t) {
+    <app-tool-card [tool]="t" [isFavorite]="isFav(t.id)" (toggleFavorite)="toggleFav($event)" />
+    }
+  </section>
+  } @else if (filteredTools().length === 0) {
+  <ng-template #emptyState>
+    <div class="empty">
+      <h3>No hay resultados</h3>
+      <p>Prueba a borrar la búsqueda o cambiar categoría / modo.</p>
+      <button type="button" class="reset" (click)="reset()">Restablecer filtros</button>
+    </div>
+  </ng-template>
+  }
+</section>
