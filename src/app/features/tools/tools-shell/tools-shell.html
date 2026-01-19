@@ -1,1 +1,138 @@
-<p>tools-shell works!</p>
+<div class="shell">
+  <header class="header">
+    <button
+      type="button"
+      class="hamburger"
+      (click)="toggleSidebar()"
+      aria-label="Abrir/cerrar menú"
+    >
+      <span aria-hidden="true">☰</span>
+    </button>
+
+    <a class="brand" routerLink="/">
+      <div class="brand__logo" aria-hidden="true">🧰</div>
+      <div class="brand__text">
+        <div class="brand__name">La Navaja Informática</div>
+        <div class="brand__sub">Frontend Toolkit</div>
+      </div>
+    </a>
+
+    <label class="search" aria-label="Buscar herramienta">
+      <span class="search__icon" aria-hidden="true">⌕</span>
+      <input
+        type="text"
+        [value]="query()"
+        (input)="onQueryInput($event)"
+        placeholder="Buscar herramienta…"
+      />
+    </label>
+
+    <nav class="topNav" aria-label="Accesos rápidos">
+      <a class="topNav__link" routerLink="/favorites" routerLinkActive="is-active"> Favoritos </a>
+      <a class="topNav__link" routerLink="/history" routerLinkActive="is-active"> Historial </a>
+      <a class="topNav__link" routerLink="/settings" routerLinkActive="is-active"> Ajustes </a>
+    </nav>
+  </header>
+
+  <div class="body">
+    <aside class="sidebar" [class.sidebar--open]="sidebarOpen()" aria-label="Menú de herramientas">
+      <div class="sidebar__section">
+        <div class="sidebar__title">Navegación</div>
+
+        <a
+          class="sideLink"
+          routerLink="/tools"
+          routerLinkActive="is-active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <span class="sideLink__icon" aria-hidden="true">🏠</span>
+          <span class="sideLink__label">Todas las herramientas</span>
+          <span class="sideLink__count">{{ allCount }}</span>
+        </a>
+
+        <a class="sideLink" routerLink="/favorites" routerLinkActive="is-active">
+          <span class="sideLink__icon" aria-hidden="true">★</span>
+          <span class="sideLink__label">Favoritos</span>
+          <span class="sideLink__count">{{ favoritesCount() }}</span>
+        </a>
+
+        <a class="sideLink" routerLink="/history" routerLinkActive="is-active">
+          <span class="sideLink__icon" aria-hidden="true">🕘</span>
+          <span class="sideLink__label">Historial</span>
+        </a>
+      </div>
+
+      <div class="sidebar__section">
+        <div class="sidebar__title">Categorías</div>
+
+        <button
+          type="button"
+          class="chip"
+          [class.chip--active]="category() === 'all'"
+          (click)="setCategory('all')"
+        >
+          Todas
+        </button>
+
+        @for (c of categories; track $index) {
+        <button
+          type="button"
+          class="chip"
+          [class.chip--active]="category() === c"
+          (click)="setCategory(c)"
+        >
+          {{ c }}
+        </button>
+        }
+      </div>
+
+      <div class="sidebar__section">
+        <div class="sidebar__title">Resultados</div>
+        <div class="hint">
+          <div><strong>{{ filteredCount() }}</strong> herramienta(s)</div>
+          @if (query().trim()) {
+          <div class="hint__muted">Filtro: “{{ query().trim() }}”</div>
+          } @if (category() !== 'all') {
+          <div class="hint__muted">Categoría: {{ category() }}</div>
+          }
+        </div>
+
+        @if (filteredPreview().length) {
+        <div class="miniList">
+          @for (t of filteredPreview(); track $index) {
+          <a class="miniItem" [routerLink]="t.route" (click)="closeSidebarOnMobile()">
+            <span class="miniItem__icon" aria-hidden="true">{{ t.icon || '🛠️' }}</span>
+            <span class="miniItem__label">{{ t.name }}</span>
+          </a>
+          }
+        </div>
+        } @else {
+        <ng-template>
+          <div class="hint__muted">Sin coincidencias.</div>
+        </ng-template>
+        }
+      </div>
+
+      <div class="sidebar__section">
+        <div class="sidebar__title">Acciones</div>
+        <button type="button" class="ghostBtn" (click)="resetFilters()">Restablecer filtros</button>
+      </div>
+    </aside>
+
+    <main
+      title="tools"
+      class="content"
+      (click)="closeSidebarOnMobile()"
+      tabindex="0"
+      (keydown.enter)="closeSidebarOnMobile()"
+      (keydown.space)="closeSidebarOnMobile()"
+      role="button"
+    >
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  @if (sidebarOpen()) {
+  <div class="backdrop" (click)="toggleSidebar()" aria-hidden="true"></div>
+  }
+</div>
