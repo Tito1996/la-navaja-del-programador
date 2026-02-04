@@ -1,1 +1,236 @@
-<p>json-tools works!</p>
+<section class="page">
+  <header class="head">
+    <div>
+      <h2>Regex Playground</h2>
+      <p>Prueba expresiones regulares, inspecciona grupos y haz reemplazos con preview.</p>
+    </div>
+
+    <div class="actions">
+      <button
+        type="button"
+        class="btn"
+        [class.btn--active]="mode() === 'match'"
+        (click)="setMode('match')"
+      >
+        Matches
+      </button>
+      <button
+        type="button"
+        class="btn"
+        [class.btn--active]="mode() === 'replace'"
+        (click)="setMode('replace')"
+      >
+        Replace
+      </button>
+      <button
+        type="button"
+        class="btn btn--ghost"
+        (click)="copyHighlighted()"
+        [disabled]="!highlightHtml()"
+      >
+        Copiar resaltado (HTML)
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="clearAll()">Limpiar</button>
+    </div>
+  </header>
+
+  <div
+    class="status"
+    [class.status--ok]="statusType() === 'ok'"
+    [class.status--err]="statusType() === 'err'"
+  >
+    <div class="status__title">{{ statusTitle() }}</div>
+    <div class="status__detail" *ngIf="statusDetail()">{{ statusDetail() }}</div>
+  </div>
+
+  <div class="grid">
+    <!-- Panel Config -->
+    <div class="panel panel--config">
+      <div class="panel__head">
+        <div class="panel__title">Configuración</div>
+        <div class="panel__meta">
+          <button type="button" class="link" (click)="pasteText()">Pegar texto</button>
+          <button type="button" class="link" (click)="loadExample()">Ejemplo</button>
+        </div>
+      </div>
+
+      <div class="form">
+        <label class="field">
+          <span class="field__label">Pattern</span>
+          <input
+            class="input mono"
+            type="text"
+            [value]="pattern()"
+            (input)="pattern.set(($any($event.target).value as string))"
+            placeholder="p.ej. (\\w+)@(\\w+\\.)+\\w+"
+            spellcheck="false"
+          />
+        </label>
+
+        <div class="row">
+          <label class="field">
+            <span class="field__label">Flags</span>
+            <input
+              class="input mono"
+              type="text"
+              [value]="flagsRaw()"
+              (input)="flagsRaw.set(($any($event.target).value as string))"
+              placeholder="gimsuy"
+              spellcheck="false"
+            />
+          </label>
+
+          <div class="flagsHint">
+            <div class="flagsHint__title">Flags útiles</div>
+            <div class="flagsHint__items">
+              <span class="chip">g global</span>
+              <span class="chip">i ignoreCase</span>
+              <span class="chip">m multiline</span>
+              <span class="chip">s dotAll</span>
+              <span class="chip">u unicode</span>
+              <span class="chip">y sticky</span>
+            </div>
+          </div>
+        </div>
+
+        <label class="field">
+          <span class="field__label">Texto</span>
+          <textarea
+            class="textarea mono"
+            [value]="text()"
+            (input)="text.set(($any($event.target).value as string))"
+            placeholder="Pega aquí el texto sobre el que quieres aplicar la regex…"
+            spellcheck="false"
+          ></textarea>
+        </label>
+
+        <div class="replaceBlock" *ngIf="mode() === 'replace'">
+          <label class="field">
+            <span class="field__label">Reemplazo</span>
+            <input
+              class="input mono"
+              type="text"
+              [value]="replacement()"
+              (input)="replacement.set(($any($event.target).value as string))"
+              placeholder="p.ej. [$1]"
+              spellcheck="false"
+            />
+            <div class="field__help">
+              Usa <span class="mono">$1</span>, <span class="mono">$2</span>… para capturas.
+              <span class="mono">$&</span> = match completo.
+            </div>
+          </label>
+        </div>
+
+        <div class="formActions">
+          <button type="button" class="btn" (click)="copyText()" [disabled]="!text().trim()">
+            Copiar texto
+          </button>
+          <button
+            type="button"
+            class="btn btn--ghost"
+            (click)="copyPattern()"
+            [disabled]="!pattern().trim()"
+          >
+            Copiar pattern
+          </button>
+          <button
+            type="button"
+            class="btn btn--ghost"
+            (click)="copyResult()"
+            [disabled]="mode() === 'match' ? matches().length === 0 : !replaceResult().trim()"
+          >
+            Copiar resultado
+          </button>
+        </div>
+
+        <div class="muted" *ngIf="copyMsg()">{{ copyMsg() }}</div>
+      </div>
+    </div>
+
+    <!-- Panel Output -->
+    <div class="panel">
+      <div class="panel__head">
+        <div class="panel__title">Salida</div>
+        <div class="panel__meta">
+          <span class="muted" *ngIf="mode() === 'match'"> {{ matches().length }} match(es) </span>
+          <span class="muted" *ngIf="mode() === 'replace'"> {{ replaceResultBytes() }} bytes </span>
+        </div>
+      </div>
+
+      <!-- Resaltado -->
+      <div class="highlight" *ngIf="highlightHtml(); else noHighlight">
+        <div class="highlight__toolbar">
+          <span class="muted">Preview resaltado</span>
+          <button
+            type="button"
+            class="link"
+            (click)="copyHighlighted()"
+            [disabled]="!highlightHtml()"
+          >
+            Copiar HTML
+          </button>
+        </div>
+
+        <div class="highlight__box" [innerHTML]="highlightHtml()"></div>
+      </div>
+
+      <ng-template #noHighlight>
+        <div class="empty">
+          <h3 *ngIf="statusType() === 'idle'">Listo</h3>
+          <h3 *ngIf="statusType() === 'ok'">Sin matches</h3>
+          <h3 *ngIf="statusType() === 'err'">Regex inválida</h3>
+          <p *ngIf="statusType() === 'idle'">Introduce un pattern y un texto para empezar.</p>
+          <p *ngIf="statusType() === 'ok'">Tu regex es válida, pero no encontró coincidencias.</p>
+          <p *ngIf="statusType() === 'err'">Corrige el pattern/flags para poder evaluar.</p>
+        </div>
+      </ng-template>
+
+      <!-- Detalle -->
+      <div class="details" *ngIf="mode() === 'match' && matches().length">
+        <div class="details__title">Matches</div>
+
+        <div class="tableWrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Rango</th>
+                <th>Match</th>
+                <th>Grupos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let m of matches(); trackBy: trackByIndex">
+                <td class="mono">{{ m.index }}</td>
+                <td class="mono">{{ m.start }}..{{ m.end }}</td>
+                <td class="mono">{{ m.text }}</td>
+                <td>
+                  <div class="groups" *ngIf="m.groups.length; else noGroups">
+                    <div class="group" *ngFor="let g of m.groups; let i = index">
+                      <span class="group__k mono">$ {{ i + 1 }}</span>
+                      <span class="group__v mono">{{ g }}</span>
+                    </div>
+                  </div>
+                  <ng-template #noGroups>
+                    <span class="muted">—</span>
+                  </ng-template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="details" *ngIf="mode() === 'replace' && statusType() === 'ok'">
+        <div class="details__title">Resultado del replace</div>
+        <textarea
+          class="textarea mono textarea--out"
+          [value]="replaceResult()"
+          readonly
+          spellcheck="false"
+        ></textarea>
+      </div>
+    </div>
+  </div>
+</section>

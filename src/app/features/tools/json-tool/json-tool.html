@@ -1,1 +1,85 @@
-<p>regex-tools works!</p>
+<section class="page">
+  <header class="head">
+    <div>
+      <h2>JSON Tools</h2>
+      <p>Valida, formatea y minifica JSON. Todo local en el navegador.</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn" (click)="run('pretty')">Formatear</button>
+      <button type="button" class="btn" (click)="run('minify')">Minificar</button>
+      <button
+        type="button"
+        class="btn btn--ghost"
+        (click)="copyOutput()"
+        [disabled]="!output().trim()"
+      >
+        Copiar resultado
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="clearAll()">Limpiar</button>
+    </div>
+  </header>
+
+  <div
+    class="status"
+    [class.status--ok]="statusType() === 'ok'"
+    [class.status--err]="statusType() === 'err'"
+  >
+    <div class="status__title">{{ statusTitle() }}</div>
+    <div class="status__detail" *ngIf="statusDetail()">{{ statusDetail() }}</div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel__head">
+        <div class="panel__title">Entrada</div>
+        <div class="panel__meta">
+          <button type="button" class="link" (click)="pasteInput()">Pegar</button>
+          <button type="button" class="link" (click)="copyInput()" [disabled]="!input().trim()">
+            Copiar
+          </button>
+          <button type="button" class="link" (click)="clearInput()" [disabled]="!input().trim()">
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <textarea
+        class="editor"
+        [value]="input()"
+        (input)="onQueryInput($event)"
+        placeholder='Pega aquí tu JSON, por ejemplo: { "name": "La Navaja", "v": 1 }'
+        spellcheck="false"
+      ></textarea>
+
+      <div class="panel__foot">
+        <span class="muted">{{ inputBytes() }} bytes</span>
+        <span class="muted" *ngIf="parsedOk() && input().trim()">· JSON válido</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel__head">
+        <div class="panel__title">Salida</div>
+        <div class="panel__meta">
+          <span class="muted" *ngIf="lastMode()">Modo: {{ lastMode() }}</span>
+          <span class="muted" *ngIf="output().trim()">· {{ outputBytes() }} bytes</span>
+        </div>
+      </div>
+
+      <textarea
+        class="editor editor--out"
+        [value]="output()"
+        readonly
+        spellcheck="false"
+      ></textarea>
+
+      <div class="panel__foot">
+        <span class="muted" *ngIf="copyMsg()">{{ copyMsg() }}</span>
+        <span class="muted" *ngIf="!output().trim()"
+          >Ejecuta “Formatear” o “Minificar” para ver resultado.</span
+        >
+      </div>
+    </div>
+  </div>
+</section>

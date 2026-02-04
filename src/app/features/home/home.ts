@@ -15,7 +15,7 @@ type FilterMode = 'all' | 'favorites';
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
-export class ToolsHome {
+export class Home {
   private readonly registry = inject(ToolRegistryService);
   private readonly favs = inject(FavoritesService);
 
@@ -36,18 +36,11 @@ export class ToolsHome {
     const favIds = new Set(this.favs.getAllIds());
 
     return this.allTools
-      .filter(t => (cat === 'all' ? true : t.category === cat))
-      .filter(t => (mode === 'favorites' ? favIds.has(t.id) : true))
-      .filter(t => {
+      .filter((t) => (cat === 'all' ? true : t.category === cat))
+      .filter((t) => (mode === 'favorites' ? favIds.has(t.id) : true))
+      .filter((t) => {
         if (!q) return true;
-        const haystack = [
-          t.name,
-          t.description,
-          t.category,
-          t.id,
-          t.route,
-          ...(t.keywords ?? []),
-        ]
+        const haystack = [t.name, t.description, t.category, t.id, t.route, ...(t.keywords ?? [])]
           .join(' ')
           .toLowerCase();
         return haystack.includes(q);
@@ -56,7 +49,7 @@ export class ToolsHome {
 
   // Categorías (derivadas del registro)
   readonly categories: ToolCategory[] = Array.from(
-    new Set(this.allTools.map(t => t.category))
+    new Set(this.allTools.map((t) => t.category)),
   ) as ToolCategory[];
 
   setQuery(v: string): void {
